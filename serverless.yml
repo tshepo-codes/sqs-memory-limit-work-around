@@ -1,0 +1,57 @@
+service: sqs-memory-limit-work-around
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: eu-west-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:ChangeMessageVisibility
+        - sqs:ReceiveMessage
+      Resource:
+        Fn::GetAtt: [MyQueue, Arn]
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+        - s3:ListBucket
+        - s3:DeleteObject
+      Resource: "*"
+
+plugins:
+  - serverless-offline
+
+functions:
+  producerFunction:
+    handler: sqs-producer.handler
+    name: sqsProducerFunction
+
+  consumerFunction:
+    handler: sqs-consumer.handler
+    name: sqsConsumerFunction
+    events:
+      - sqs:
+          arn: 
+            Fn::GetAtt:
+              - MyQueue
+              - Arn
+          batchSize: 1
+          maximumRetryAttempts: 2
+          topicName: MyQueue
+            
+resources:
+  Resources:
+    FileBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: YOUR_BUCKET_NAME # TODO create a globally unique bucket name
+    MyQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: YOUR_QUEUE_NAME
+      
