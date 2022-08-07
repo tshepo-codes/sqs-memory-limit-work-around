@@ -53,5 +53,5 @@ resources:
     MyQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: YOUR_QUEUE_NAME
+        QueueName: YOUR_QUEUE_NAME # TODO Provide queue name
       

@@ -16,7 +16,7 @@ exports.handler = async (event) => {
 
             if (messageBody.isUploadedToS3) {
 
-                const bucketName = 'my-file-bucket-011' // TODO have this as a description
+                const bucketName = 'YOUR BUCKET NAME' // TODO replace with bucket name
 
                 // Read the payload from s3
                 payload = await getS3Object(bucketName, messageBody.fileKey);
