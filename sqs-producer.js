@@ -11,7 +11,7 @@ const s3 = new AWS.S3();
 
 exports.handler = async (event) => {
   try {
-    
+
     // SQS memory limit in bytes
     const sqsMemoryLimit = 256000;
     
@@ -27,12 +27,12 @@ exports.handler = async (event) => {
       body: null
     }
 
-    const queueUrl = 'YOUR QUEUE URL'; // TODO replace with queue url
+    const queueUrl = process.env.QUEUE_ARN;
 
     if (payloadMemorySize >= sqsMemoryLimit) {
       const fileKey = uuidv4() + '.json';
 
-      const bucketName = 'YOUR BUCKET NAME'; //TODO replace with your bucket name
+      const bucketName = process.env.FILE_BUCKET_NAME;
 
       await uploadToS3(payload, bucketName, fileKey);
 

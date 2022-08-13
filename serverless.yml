@@ -5,8 +5,15 @@ frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs12.x
-  stage: dev
-  region: eu-west-1
+  stage: ${opt:stage, 'develop'}
+  region: ${opt:region, 'eu-west-1'} #TODO replace with your region
+  environment:
+    FILE_BUCKET_NAME: ${self:custom.filesBucket}
+    QUEUE_ARN: 
+      Ref: MyQueue
+  
+  # This iam role will be applied to all lambdas.
+  # Best practice is to have a role specific to each lamda for least privilage security
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -21,16 +28,21 @@ provider:
         - s3:PutObject
         - s3:ListBucket
         - s3:DeleteObject
-      Resource: "*"
+      Resource:
+        - "arn:aws:s3:::${self:custom.filesBucket}"
+        - "arn:aws:s3:::${self:custom.filesBucket}/*"
+    
 
-plugins:
-  - serverless-offline
+custom:
+  filesBucket: app-files-${self:provider.stage}
 
 functions:
+  # Function to send messages to sqs
   producerFunction:
     handler: sqs-producer.handler
     name: sqsProducerFunction
 
+  # Function to read messages from sqs
   consumerFunction:
     handler: sqs-consumer.handler
     name: sqsConsumerFunction
@@ -40,18 +52,20 @@ functions:
             Fn::GetAtt:
               - MyQueue
               - Arn
-          batchSize: 1
+          batchSize: 5
           maximumRetryAttempts: 2
           topicName: MyQueue
             
 resources:
   Resources:
+    # File bucket to hold large payloads that cannot be sent through sqs
     FileBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: YOUR_BUCKET_NAME # TODO create a globally unique bucket name
+        BucketName: ${self:custom.filesBucket}
+    # SQS
     MyQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: YOUR_QUEUE_NAME # TODO Provide queue name
+        QueueName: MyQueue
       

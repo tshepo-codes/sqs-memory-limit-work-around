@@ -16,14 +16,15 @@ exports.handler = async (event) => {
 
             if (messageBody.isUploadedToS3) {
 
-                const bucketName = 'YOUR BUCKET NAME' // TODO replace with bucket name
+                const bucketName =  process.env.FILE_BUCKET_NAME;
 
                 // Read the payload from s3
                 payload = await getS3Object(bucketName, messageBody.fileKey);
 
-                // Delete the payload file from s3.
-                // Alternatively you can use S3 lifecycle to delete objects from the bucket
-                await deleteS3Object(bucketName, messageBody.fileKey);
+                // Uncomment the following code to delete the payload file from s3 once the message is read.
+                // Alternatively you can use S3 lifecycle policy to delete objects from the bucket
+
+                // await deleteS3Object(bucketName, messageBody.fileKey); 
 
             } else {
 
